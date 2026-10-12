@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "profixio-live",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "profixio-live-worker",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:worker", "--", "--port", "8787"],
+      "port": 8787
+    }
+  ]
+}

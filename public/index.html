@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#020617">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Profixio Live</title>
+  <link rel="stylesheet" href="tw.css">
+</head>
+<body class="min-h-dvh pb-[calc(3.25rem+env(safe-area-inset-bottom))]">
+
+  <!-- Fixed header: result + team names (the team in view is highlighted; tap the other to switch). -->
+  <section id="controls" class="sticky top-0 z-10 border-b border-slate-800 bg-slate-950/95 px-2 pt-[max(0.375rem,env(safe-area-inset-top))] pb-1.5 backdrop-blur md:px-4 md:pb-3" hidden>
+    <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 md:gap-4">
+      <button id="home-name" type="button" data-team="0" class="min-w-0 rounded-xl px-2 py-1.5 text-right"></button>
+      <div class="rounded-xl bg-slate-900 px-3 py-0.5 text-3xl font-black tabular-nums ring-1 ring-slate-800 md:rounded-2xl md:px-5 md:py-1 md:text-5xl">
+        <span id="home-goals">0</span><span class="px-1 text-slate-600">–</span><span id="away-goals">0</span>
+      </div>
+      <button id="away-name" type="button" data-team="1" class="min-w-0 rounded-xl px-2 py-1.5 text-left"></button>
+    </div>
+    <div class="mt-1 flex items-center justify-center gap-2 text-xs text-slate-400 md:text-sm">
+      <span id="title" class="truncate"></span>
+      <span id="clock" class="shrink-0 font-semibold tabular-nums"></span>
+    </div>
+  </section>
+
+  <div id="message" class="px-4 py-10 text-center text-lg text-slate-400 empty:hidden">Välj en match under <a href="team.html" class="text-home underline">Hitta match</a>, eller klistra in en matchlänk nedan.</div>
+
+  <!-- One team at a time on small screens (any short horizontal swipe swaps team), two columns from md. -->
+  <main id="teams" class="touch-pan-y overflow-x-hidden p-2 select-none md:grid md:grid-cols-2 md:gap-4 md:p-4 md:select-auto"></main>
+
+  <!-- Small fixed footer: link to Hitta match and the auto-refresh toggle.
+       The match-link field only shows when no match is loaded. -->
+  <footer class="fixed inset-x-0 bottom-0 z-20 border-t border-slate-800 bg-slate-950/95 px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] backdrop-blur md:px-4">
+    <form id="match-form" class="mb-1.5 flex gap-2" hidden>
+      <input id="match-input" class="input h-11 text-base" placeholder="Profixio-länk eller match-id" autocomplete="off" spellcheck="false" inputmode="url">
+      <button type="submit" class="btn-primary h-11 px-4 text-base">Ladda</button>
+    </form>
+    <div class="flex items-center gap-1.5">
+      <a href="team.html" class="nav-link px-3 py-1.5 text-sm">Hitta match</a>
+      <div class="ml-auto flex items-center gap-1.5 text-xs text-slate-400">
+        <span id="updated-text" class="hidden sm:inline"></span>
+        <!-- Auto-refresh on/off (every 30 s). Turns itself off when the match is finished. -->
+        <button id="poll-toggle" type="button" aria-pressed="true" title="Automatisk uppdatering var 30:e sekund"
+          class="flex h-9 items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-2.5 text-sm font-semibold text-slate-200 active:scale-95">
+          <span id="dot" class="size-2 rounded-full bg-slate-600"></span>
+          <span id="poll-label">Live</span>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

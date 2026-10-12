@@ -1,0 +1,25 @@
+{
+  "name": "profixio-live",
+  "version": "1.0.0",
+  "description": "Live helper for Profixio handball matches: rosters with numbers, goals and name search",
+  "main": "worker.js",
+  "scripts": {
+    "build:css": "tailwindcss -i src/input.css -o public/tw.css --minify",
+    "watch:css": "tailwindcss -i src/input.css -o public/tw.css --watch",
+    "start": "npm run build:css && node server.js",
+    "dev": "npm run build:css && node --watch server.js",
+    "dev:worker": "npm run build:css && wrangler dev",
+    "deploy": "npm run build:css && wrangler deploy"
+  },
+  "license": "ISC",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "private": true,
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.0",
+    "tailwindcss": "4.3.0",
+    "wrangler": "^4.149.0"
+  }
+}

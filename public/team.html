@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#020617">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Hitta match – Profixio Live</title>
+  <link rel="stylesheet" href="tw.css">
+</head>
+<body class="min-h-dvh pt-[env(safe-area-inset-top)] pb-[calc(3.25rem+env(safe-area-inset-bottom))]">
+
+  <div class="mx-auto max-w-3xl px-4">
+    <section id="search-section" class="py-6" hidden>
+      <div class="mb-4 flex items-center justify-between">
+        <h1 class="text-xl font-black sm:text-2xl">Hitta lagets matcher</h1>
+        <button id="cancel-search" type="button" class="btn-ghost h-12 px-4 text-base" hidden>Avbryt</button>
+      </div>
+      <form id="team-form" class="flex flex-wrap items-end gap-3">
+        <label class="flex min-w-0 flex-1 basis-48 flex-col gap-1.5 text-sm font-semibold text-slate-400">Lag-id
+          <input id="team-input" class="input" inputmode="numeric" placeholder="t.ex. 1584383" autocomplete="off" spellcheck="false" enterkeyhint="search">
+        </label>
+        <label class="flex w-28 flex-col sm:w-36 gap-1.5 text-sm font-semibold text-slate-400">Liga-id
+          <input id="league-input" class="input" inputmode="numeric" placeholder="28119" autocomplete="off" spellcheck="false">
+        </label>
+        <button type="submit" class="btn-primary w-full sm:w-auto">Hämta matcher</button>
+      </form>
+      <p class="mt-2 text-sm text-slate-500">Du kan också klistra in hela laglänken från Profixio i lag-fältet.</p>
+      <div id="recent" class="mt-8 empty:hidden"></div>
+    </section>
+
+    <section id="schedule-head" class="pt-6" hidden>
+      <div class="flex items-center gap-4">
+        <div id="team-logo"></div>
+        <div class="min-w-0 flex-1">
+          <h1 id="team-name" class="line-clamp-2 text-2xl leading-tight font-black sm:text-3xl"></h1>
+          <div id="team-competition" class="truncate text-slate-400"></div>
+        </div>
+        <button id="change-team" type="button" class="btn-ghost h-12 px-4 text-base">Byt lag</button>
+      </div>
+      <div class="mt-5 flex flex-wrap items-center gap-3">
+        <div id="filters" class="seg w-full sm:w-auto [&>button]:flex-1" role="group" aria-label="Visa">
+          <button type="button" data-filter="upcoming">Kommande</button>
+          <button type="button" data-filter="played">Spelade</button>
+          <button type="button" data-filter="all">Alla</button>
+        </div>
+        <a id="profixio-link" class="ml-auto text-sm text-slate-400 underline-offset-4 hover:underline" target="_blank" rel="noopener">Öppna i Profixio ↗</a>
+      </div>
+    </section>
+
+    <div id="message" class="py-10 text-center text-lg text-slate-400 empty:hidden"></div>
+    <main id="schedule" class="pb-12"></main>
+  </div>
+
+  <!-- Small fixed footer: navigation (same as on the match page). -->
+  <footer class="fixed inset-x-0 bottom-0 z-20 border-t border-slate-800 bg-slate-950/95 px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] backdrop-blur md:px-4">
+    <nav class="flex gap-1">
+      <a href="team.html" class="nav-link active px-3 py-1.5 text-sm">Hitta match</a>
+      <a href="index.html" class="nav-link px-3 py-1.5 text-sm">Match</a>
+    </nav>
+  </footer>
+
+  <script type="module" src="team.js"></script>
+</body>
+</html>
