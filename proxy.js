@@ -14,6 +14,7 @@ const ALLOWED = [
   ['GET', /^lx\/competition\/leagueid\d+\/teams\/\d+$/],
   ['GET', /^api\/matches\/live-state$/],
   ['GET', /^api\/time$/],
+  ['GET', /^api\/emp\/\d+\/\d+$/], // signed live snapshot (lineup with activated players), from the match page
   ['POST', /^livewire\/update$/],
 ];
 const FORWARD_HEADERS = ['content-type', 'x-livewire', 'x-csrf-token'];

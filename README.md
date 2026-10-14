@@ -71,16 +71,31 @@ or paste the team's Profixio link.
 - On a phone one team is shown at a time. A short swipe (about 30 px) in either direction swaps to
   the other team; you can also tap the other team's name
   in the header. From tablet width up, both teams are side by side.
-- A fixed header stays on top: result, both team names (the team in view is highlighted), match
-  title and clock.
+- A fixed header stays on top: both team names (the team in view is highlighted), result, the match
+  clock with the current half, running 2-minute suspensions and timeouts per team as countdowns
+  (`#13 1:42`, `TIMEOUT 0:45`).
+- Tap the clock to switch between total match time (2nd half continues from 25:00) and time within the
+  half (2nd half restarts at 0:00). The choice is remembered.
 - Players are always sorted by name, with shirt number, goals (Mål) and suspensions (Utv.). Rows are
   compact on phones so a whole team fits on one screen.
+- In the list: while the match is on, the last goal scorer is highlighted green with a **MÅL** badge;
+  yellow/red cards show as
+  small cards after the name, and a suspended player's row turns red with a countdown.
+- Under each scorer's name: one icon per goal in match order. White dot = goal, green 7 = 7-m goal,
+  red struck-through 7 = missed 7-m (only when Profixio registered the shooter; misses without a
+  player are ignored).
 - The screen is kept awake while a match is open (Screen Wake Lock: Chrome/Android, iOS Safari 16.4+;
   needs HTTPS, which the deployed Worker has).
 - Rows flash green when a player's stats change.
-- Auto-refresh is a single on/off button in the top bar: **Live** (green dot) refreshes every 30 s,
-  **Av** is off. The dot turns red if refreshes keep failing. When the match is finished the button
-  shows **Slut** and polling stops by itself. The match clock still ticks every second between refreshes.
+- Live updates (footer button, on/off):
+  - **Websocket first:** the browser connects directly to Profixio's own live push (Reverb/Pusher,
+    channel `emp.<matchId>`). Every event (goal, card, suspension, correction) triggers a refetch, so
+    changes show within a second or two. Green dot.
+  - **live-state as backup:** `/app/api/matches/live-state` (~1 KB) is polled every 5 s while the
+    websocket is down (amber dot) and every 30 s while it's up; the roster is only refetched when its
+    `sequence` changes.
+  - The dot turns red if updates keep failing. When the match is finished the button shows **Slut** and
+    everything stops. **Av** turns live updates off.
 - The match clock uses Profixio's own server time, so it matches Profixio even if the tablet's clock is off.
 
 The scraping depends on Profixio's page markup. If they change it, `public/profixio.js` is the place to fix.

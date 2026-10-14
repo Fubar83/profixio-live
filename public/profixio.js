@@ -93,10 +93,54 @@ function parseTeams(doc) {
   return [...teams.values()];
 }
 
+// The match's events (goals, cards, suspensions, timeouts…) as Profixio's own page seeds them,
+// already normalized (side, cls, playerNo, isYellow, expulsionEndSeconds, …). A finished match
+// only seeds them on the default tab, so that is fetched as a fallback.
+async function matchEvents(id, seed) {
+  if (seed.events?.length) return seed.events;
+  try {
+    const html = await (await get(`lx/match/${id}`)).text();
+    return embeddedJson(html, String.raw`matchLive\(`)?.events ?? [];
+  } catch {
+    return [];
+  }
+}
+
+// Reverb (Pusher protocol) websocket settings from the page's meta tags; the socket is on /ws.
+function realtimeConfig(doc) {
+  const meta = (name) => doc.querySelector(`meta[name="${name}"]`)?.getAttribute('content');
+  const key = meta('reverb-key');
+  if (!key) return null;
+  const scheme = meta('reverb-scheme') === 'http' ? 'ws' : 'wss';
+  return { url: `${scheme}://${meta('reverb-host') || 'www.profixio.com'}:${meta('reverb-port') || 443}/ws/app/${key}` };
+}
+
+// Which players have been activated (marked present) in the match, per side, from the signed
+// live snapshot the match page links to while a match is live. null when unknown (not live,
+// link expired…), in which case nobody is greyed out.
+async function activatedPlayers(seed) {
+  if (!seed.resyncUrl) return null;
+  try {
+    const url = new URL(seed.resyncUrl);
+    if (url.origin !== 'https://www.profixio.com' || !url.pathname.startsWith('/app/')) return null;
+    const info = await (await get(url.pathname.slice('/app/'.length) + url.search, { headers: { Accept: 'application/json' } })).json();
+    if (!Array.isArray(info.lineup)) return null;
+    const sides = { home: new Set(), away: new Set() };
+    for (const p of info.lineup) {
+      if (p.type !== 'player' || !(p.current || p.played)) continue;
+      const side = p.webTeamId === seed.homeWebid ? 'home' : p.webTeamId === seed.awayWebid ? 'away' : null;
+      if (side) sides[side].add(String(p.number).trim());
+    }
+    return { home: [...sides.home], away: [...sides.away] };
+  } catch {
+    return null;
+  }
+}
+
 export async function loadMatch(id) {
-  const [pageRes, liveRes] = await Promise.all([
+  const [pageRes, live] = await Promise.all([
     get(`lx/match/${id}?tab=lineups`),
-    get(`api/matches/live-state?ids=${id}`).catch(() => null),
+    loadLiveState(id).catch(() => null),
   ]);
   const html = await pageRes.text();
   const doc = parseHtml(html);
@@ -105,10 +149,7 @@ export async function loadMatch(id) {
   const setup = embeddedJson(html, 'setup: ');
 
   // live-state carries the freshest score/clock while a match is running.
-  try {
-    const live = liveRes ? (await liveRes.json())[id] : null;
-    if (live?.gamestate) gamestate = { ...gamestate, ...live.gamestate };
-  } catch { /* keep the page's gamestate */ }
+  if (live?.gamestate) gamestate = { ...gamestate, ...live.gamestate };
 
   let teams = parseTeams(doc);
   if (seed.homeWebid && seed.awayWebid) {
@@ -124,7 +165,18 @@ export async function loadMatch(id) {
     gamestate,
     setup,
     teams,
+    ...Object.fromEntries(await Promise.all([
+      matchEvents(id, seed).then((v) => ['events', v]),
+      activatedPlayers(seed).then((v) => ['activated', v]),
+    ])),
+    sequence: live?.sequence ?? null, // bumps whenever anything in the match changes
+    realtime: realtimeConfig(doc),
   };
+}
+
+// Light (~1 KB) score/clock/sequence for one match: { sequence, homegoals, awaygoals, gamestate, setup, … }
+export async function loadLiveState(id) {
+  return (await loadLiveStates([id]))[id] ?? null;
 }
 
 // ---------- team page (schedule tab) ----------
