@@ -59,13 +59,19 @@ Other scripts:
 
 ## Pages
 
-**Hitta match** (`team.html`): enter a team id (e.g. `1584383`) and league id (default `28119`, remembered),
-or paste the team's Profixio link.
-- Shows the team's logo and age class, and lists matches as Kommande / Spelade / Alla, with club logos
-  and a HEMMA/BORTA tag.
+**Mina lag** (`team.html`): your teams and their matches. Reached from the footer on every page.
+- **Mina lag**: favourite teams, stored on the device (localStorage). One team is selected at a time:
+  tap a team to show its matches. A newly added team becomes the selected one. × removes a team (with
+  a confirmation in the chip); removing the selected team selects the first remaining one.
+- **+ Lägg till lag**: search by team id (e.g. `1584383`) and league id (default `28119`, remembered), or
+  paste the team's Profixio link. The team's matches are shown with **☆ Lägg till** to add it to Mina lag
+  (★ again removes it). Recent searches are listed in the search panel. `team.html?team=<id>&league=<id>`
+  opens a team directly.
+- Matches are listed as **Kommande** (live, today's and future), **Spelade** (history, latest first) or
+  **Alla**, with club logos, a HEMMA/BORTA tag when one of your teams plays, and the competition when
+  several teams are selected.
 - Today's and tomorrow's matches are labelled "Idag" / "Imorgon", and the next match is highlighted.
-- Today's matches get live score updates every 30 s (until they're finished).
-- Recently used teams are shown as cards. Tap a match to open it.
+- Today's matches get live score updates every 30 s (until they're finished). Tap a match to open it.
 
 **Match** (`index.html?match=<id>`): rosters for both teams. Mobile-first:
 - On a phone one team is shown at a time. A short swipe (about 30 px) in either direction swaps to

@@ -64,6 +64,10 @@ const SHORT_LABELS = { 'Bestr.': 'Utv.' };
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const byName = (a, b) => a.name.localeCompare(b.name, 'sv');
 const isFinished = () => !!state.data?.gamestate?.finished;
+// Profixio marks a match that hasn't kicked off as "scheduled" (and has no game state yet).
+const isNotStarted = () => state.data?.state === 'scheduled' && !state.data?.gamestate?.clock;
+// Live updates (websocket + polling) only run while the match is actually being played.
+const isOngoing = () => !!state.data && !isFinished() && !isNotStarted();
 const nowServer = () => Date.now() / 1000 + state.clockOffset;
 const mmss = (secs) => `${Math.floor(secs / 60)}:${String(Math.floor(secs % 60)).padStart(2, '0')}`;
 // Countdowns always mm:ss so their width never changes.
@@ -209,7 +213,7 @@ async function refresh() {
 
 // Start/stop the websocket and the live-state backup to match the toggle and match state.
 function updateLive() {
-  const wanted = state.polling && state.data && !isFinished();
+  const wanted = state.polling && isOngoing();
   if (!wanted) {
     state.socket?.close();
     state.socket = null;
@@ -243,7 +247,7 @@ function updateLive() {
 
 function scheduleLiveState() {
   clearTimeout(state.liveTimer);
-  if (!state.polling || !state.data || isFinished()) return;
+  if (!state.polling || !isOngoing()) return;
   const delay = state.socketStatus === 'connected' ? LIVE_STATE_MS_WITH_SOCKET : LIVE_STATE_MS_FALLBACK;
   state.liveTimer = setTimeout(checkLiveState, delay);
 }
@@ -295,7 +299,11 @@ function loadMatch(id) {
 
 // One small icon per goal / penalty goal / missed penalty, in match order.
 const SHOT_ICONS = {
-  goal: (t) => `<span class="inline-block size-2.5 rounded-full bg-slate-200 md:size-3" title="Mål ${t}"></span>`,
+  // A small handball: white ball with curved seams.
+  goal: (t) => `<svg class="size-3.5 shrink-0 md:size-4" viewBox="0 0 24 24" role="img" aria-label="Mål ${t}"><title>Mål ${t}</title>`
+    + '<circle cx="12" cy="12" r="11" fill="#f1f5f9"/>'
+    + '<path d="M12 1.2C7.8 6 7.8 18 12 22.8M12 1.2c4.2 4.8 4.2 16.8 0 21.6M1.6 9.5c5.5 3 15.3 3 20.8 0M2.6 16.8c5 -2.6 13.8 -2.6 18.8 0" fill="none" stroke="#334155" stroke-width="1.7" stroke-linecap="round"/>'
+    + '<circle cx="12" cy="12" r="11" fill="none" stroke="#94a3b8" stroke-width="1"/></svg>',
   penaltyGoal: (t) => `<span class="inline-flex size-3.5 items-center justify-center rounded-full bg-green-500 text-[9px] leading-none font-black text-slate-950 md:size-4 md:text-[10px]" title="Mål 7-m ${t}">7</span>`,
   penaltyMiss: (t) => `<span class="inline-flex size-3.5 items-center justify-center rounded-full text-[9px] leading-none font-black text-red-400 line-through ring-1 ring-red-500 md:size-4 md:text-[10px]" title="7-m miss ${t}">7</span>`,
 };
@@ -439,11 +447,13 @@ function render() {
 // Status button in the footer: green = live push, amber = backup polling only, red = failing.
 function renderPoll() {
   const finished = isFinished();
-  const on = state.polling && !finished;
+  const notStarted = isNotStarted();
+  const on = state.polling && isOngoing();
   const pushing = on && state.socketStatus === 'connected';
-  els.pollLabel.textContent = finished ? 'Slut' : on ? 'Live' : 'Av';
+  els.pollLabel.textContent = finished ? 'Slut' : notStarted ? 'Ej startad' : on ? 'Live' : 'Av';
   els.pollToggle.setAttribute('aria-pressed', String(on));
   els.pollToggle.title = finished ? 'Matchen är slut – ingen automatisk uppdatering'
+    : notStarted ? 'Matchen har inte startat – ingen automatisk uppdatering. Tryck för att kolla igen.'
     : pushing ? 'Direktuppdatering från Profixio – tryck för att stänga av'
     : on ? 'Uppdaterar var 5:e sekund (direktuppdatering ej ansluten) – tryck för att stänga av'
     : 'Automatisk uppdatering av – tryck för att slå på';
@@ -551,6 +561,9 @@ els.teams.addEventListener('pointerup', (e) => {
 });
 
 els.pollToggle.addEventListener('click', () => {
+  // Before kick-off the button just checks once whether the match has started; updates then
+  // start by themselves.
+  if (isNotStarted()) return refresh();
   state.polling = !state.polling;
   store.set('polling', state.polling ? '1' : '0');
   if (state.polling) refresh(); // fetch now, then reconnect live updates
@@ -572,9 +585,11 @@ document.addEventListener('pointerdown', keepAwake, { passive: true });
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden || !state.matchId) return;
-  if (state.polling && !isFinished()) {
+  if (state.polling && isOngoing()) {
     state.socket?.ensure(); // the socket may have died while the phone was locked
     refresh();
+  } else if (isNotStarted()) {
+    refresh(); // one check whether it has kicked off meanwhile
   }
   keepAwake();
 });

@@ -7,58 +7,68 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Hitta match – Profixio Live</title>
+  <title>Mina lag – Profixio Live</title>
   <link rel="stylesheet" href="tw.css">
 </head>
 <body class="min-h-dvh pt-[env(safe-area-inset-top)] pb-[calc(3.25rem+env(safe-area-inset-bottom))]">
 
   <div class="mx-auto max-w-3xl px-4">
-    <section id="search-section" class="py-6" hidden>
-      <div class="mb-4 flex items-center justify-between">
-        <h1 class="text-xl font-black sm:text-2xl">Hitta lagets matcher</h1>
-        <button id="cancel-search" type="button" class="btn-ghost h-12 px-4 text-base" hidden>Avbryt</button>
+    <!-- Favourite teams (stored on this device). Tap a team to include/exclude it in the list below. -->
+    <section id="favorites-section" class="pt-5">
+      <div class="flex items-center justify-between gap-3">
+        <h1 class="text-xl font-black sm:text-2xl">Mina lag</h1>
+        <button id="add-team" type="button" class="btn-ghost h-11 px-4 text-base">+ Lägg till lag</button>
+      </div>
+      <div id="fav-list" class="mt-3 flex flex-wrap gap-2"></div>
+    </section>
+
+    <!-- Search a team by id (and league id); shows its matches with a star to add it. -->
+    <section id="search-section" class="mt-4 rounded-2xl bg-slate-900 p-4 ring-1 ring-slate-800" hidden>
+      <div class="mb-3 flex items-center justify-between">
+        <h2 class="text-lg font-bold">Sök lag</h2>
+        <button id="cancel-search" type="button" class="h-10 rounded-xl px-3 text-base text-slate-400 hover:text-slate-200">Stäng</button>
       </div>
       <form id="team-form" class="flex flex-wrap items-end gap-3">
         <label class="flex min-w-0 flex-1 basis-48 flex-col gap-1.5 text-sm font-semibold text-slate-400">Lag-id
           <input id="team-input" class="input" inputmode="numeric" placeholder="t.ex. 1584383" autocomplete="off" spellcheck="false" enterkeyhint="search">
         </label>
-        <label class="flex w-28 flex-col sm:w-36 gap-1.5 text-sm font-semibold text-slate-400">Liga-id
+        <label class="flex w-28 flex-col gap-1.5 text-sm font-semibold text-slate-400 sm:w-36">Liga-id
           <input id="league-input" class="input" inputmode="numeric" placeholder="28119" autocomplete="off" spellcheck="false">
         </label>
-        <button type="submit" class="btn-primary w-full sm:w-auto">Hämta matcher</button>
+        <button type="submit" class="btn-primary w-full sm:w-auto">Sök</button>
       </form>
       <p class="mt-2 text-sm text-slate-500">Du kan också klistra in hela laglänken från Profixio i lag-fältet.</p>
-      <div id="recent" class="mt-8 empty:hidden"></div>
+      <div id="recent" class="mt-4 empty:hidden"></div>
     </section>
 
-    <section id="schedule-head" class="pt-6" hidden>
-      <div class="flex items-center gap-4">
+    <!-- A single searched team (not necessarily a favourite). -->
+    <section id="team-head" class="mt-5 rounded-2xl bg-slate-900 p-3 ring-1 ring-slate-800" hidden>
+      <button id="back-to-favorites" type="button" class="mb-2 flex h-9 items-center gap-1 rounded-lg px-1 text-sm font-semibold text-slate-400 hover:text-slate-200">← Mina lag</button>
+      <div class="flex items-center gap-3">
         <div id="team-logo"></div>
         <div class="min-w-0 flex-1">
-          <h1 id="team-name" class="line-clamp-2 text-2xl leading-tight font-black sm:text-3xl"></h1>
-          <div id="team-competition" class="truncate text-slate-400"></div>
+          <h2 id="team-name" class="line-clamp-2 text-xl leading-tight font-black sm:text-2xl"></h2>
+          <div id="team-competition" class="truncate text-sm text-slate-400"></div>
+          <a id="profixio-link" class="text-xs text-slate-500 underline-offset-4 hover:underline" target="_blank" rel="noopener">Öppna i Profixio ↗</a>
         </div>
-        <button id="change-team" type="button" class="btn-ghost h-12 px-4 text-base">Byt lag</button>
-      </div>
-      <div class="mt-5 flex flex-wrap items-center gap-3">
-        <div id="filters" class="seg w-full sm:w-auto [&>button]:flex-1" role="group" aria-label="Visa">
-          <button type="button" data-filter="upcoming">Kommande</button>
-          <button type="button" data-filter="played">Spelade</button>
-          <button type="button" data-filter="all">Alla</button>
-        </div>
-        <a id="profixio-link" class="ml-auto text-sm text-slate-400 underline-offset-4 hover:underline" target="_blank" rel="noopener">Öppna i Profixio ↗</a>
+        <button id="star-team" type="button" class="btn-ghost h-11 shrink-0 px-3 text-base"></button>
       </div>
     </section>
+
+    <div id="filters" class="tabs mt-5" role="tablist" aria-label="Visa matcher">
+      <button type="button" role="tab" data-filter="upcoming">Kommande<span class="count" data-count="upcoming"></span></button>
+      <button type="button" role="tab" data-filter="played">Spelade<span class="count" data-count="played"></span></button>
+      <button type="button" role="tab" data-filter="all">Alla<span class="count" data-count="all"></span></button>
+    </div>
 
     <div id="message" class="py-10 text-center text-lg text-slate-400 empty:hidden"></div>
     <main id="schedule" class="pb-12"></main>
   </div>
 
-  <!-- Small fixed footer: navigation (same as on the match page). -->
+  <!-- Small fixed footer (same as on the match page). -->
   <footer class="fixed inset-x-0 bottom-0 z-20 border-t border-slate-800 bg-slate-950/95 px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] backdrop-blur md:px-4">
     <nav class="flex gap-1">
-      <a href="team.html" class="nav-link active px-3 py-1.5 text-sm">Hitta match</a>
-      <a href="index.html" class="nav-link px-3 py-1.5 text-sm">Match</a>
+      <a href="team.html" class="nav-link active px-3 py-1.5 text-sm">Mina lag</a>
     </nav>
   </footer>
 

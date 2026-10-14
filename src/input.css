@@ -51,5 +51,12 @@
   .seg button { @apply h-12 min-w-14 rounded-xl px-4 text-base font-semibold text-slate-400 transition; }
   .seg button.active { @apply bg-slate-100 text-slate-950; }
 
+  /* Equal-width tabs (Kommande / Spelade / Alla) with an optional count. */
+  .tabs { @apply grid w-full grid-cols-3 gap-1 rounded-2xl bg-slate-900 p-1 ring-1 ring-slate-800 sm:max-w-md; }
+  .tabs button { @apply flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-xl px-2 text-base font-semibold whitespace-nowrap text-slate-400 transition hover:text-slate-200; }
+  .tabs button.active { @apply bg-slate-100 text-slate-950 hover:text-slate-950; }
+  .tabs .count { @apply rounded-full bg-slate-800 px-1.5 text-xs font-bold text-slate-300 tabular-nums; }
+  .tabs button.active .count { @apply bg-slate-950/10 text-slate-700; }
+
   mark { @apply rounded bg-yellow-300 px-0.5 text-slate-950; }
 }
